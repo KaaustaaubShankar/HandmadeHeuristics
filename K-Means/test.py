@@ -14,7 +14,7 @@ data_points = np.vstack((data_cluster1, data_cluster2, data_cluster3))
 
 # Step 2: Instantiate and train the KMeans model
 kmeans = KMeans(clusters_count=3, tolerance=0.0001)
-cluster_assignments = kmeans.train(data_points)
+cluster_assignments = kmeans.train(data_points,init="++")
 
 # Step 3: Predict cluster for new data points
 new_data = np.array([[1.5, 1.5], [8.5, 7.5], [5, 13.5]])
