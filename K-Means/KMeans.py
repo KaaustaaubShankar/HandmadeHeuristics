@@ -19,7 +19,7 @@ class KMeans:
         centroids.append(inputs[first_idx])
 
         for _ in range(1, self.clusters_count):
-            #distance between all points and last centroid picked
+            #distance between all points and the centroids already picked
             distances = np.array([min(np.linalg.norm(input_point - centroid) for centroid in centroids) for input_point in inputs])
 
             # select the furthest point to be next centroid
