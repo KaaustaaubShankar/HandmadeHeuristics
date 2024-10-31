@@ -15,6 +15,8 @@ This repository covers essential algorithms with code, comments, and simple expl
 - **Linear Regression** – Predicts continuous values by fitting a linear relationship.
 - **k-Nearest Neighbors (k-NN)** – Instance-based classification and regression.
 
+### Unsupervised Learning
+- **KMeans** - a multi cluster based classifier that involves moving centroids
 ---
 
 ## 🔧 Installation
