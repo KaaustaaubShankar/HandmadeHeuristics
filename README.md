@@ -31,10 +31,33 @@ This repository covers essential algorithms with code, comments, and simple expl
    pip install numpy pandas matplotlib
    ```
 
-## 📝 To-Do
-- [ ] Implement Logistic Regression
-- [ ] Implement Polynomial Regression
-- [ ] Seperate Optimizers
+## Planned Algorithms
+
+This section outlines upcoming algorithms to be implemented, expanding on existing heuristics in this repository. Each algorithm is grouped by its category for a clear development roadmap.
+
+### Supervised Learning
+- [ ] **Logistic Regression** - For binary classification tasks, modeling the probability of class membership.
+- [ ] **Support Vector Machine (SVM)** - Finds the optimal hyperplane separating different classes.
+- [ ] **Decision Trees** - Splits data based on feature values, forming a tree structure for decision-making.
+- [ ] **Random Forest** - Ensemble method that merges outputs of multiple decision trees.
+- [ ] **Naive Bayes** - A probabilistic classifier using Bayes' theorem with feature independence assumption.
+
+### Unsupervised Learning
+- [ ] **Principal Component Analysis (PCA)** - Reduces dimensionality by transforming data into orthogonal components.
+
+### Reinforcement Learning
+- [ ] **Q-Learning** - Model-free algorithm that learns the value of actions in states to maximize cumulative rewards.
+- [ ] **SARSA (State-Action-Reward-State-Action)** - Updates action-value function based on the action actually taken.
+
+### Deep Learning
+- [ ] **Feedforward Neural Networks** - Basic neural networks with no cycles in the connections.
+- [ ] **Convolutional Neural Networks (CNNs)** - Specialized for grid-like data (e.g., images) using convolutional layers.
+- [ ] **Recurrent Neural Networks (RNNs)** - Maintains memory of previous inputs, ideal for sequential data.
+
+---
+
+Feel free to contribute to the development of these algorithms or suggest new ideas. Each implementation will follow a step-by-step approach to keep things accessible and educational.
+
 
 
 ## 🧠 Contributing
