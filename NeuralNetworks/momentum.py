@@ -15,10 +15,25 @@ input_size = 784  # Example input size for MNIST
 output_size = 10  # Number of classes
 
 # Get user inputs for hidden layer sizes, learning rate, and momentum coefficient
-hidden_layer_sizes = list(map(int, input("Enter hidden layer sizes separated by commas (e.g., 200,100,50): ").split(',')))
-alpha = float(input("Enter the learning rate (e.g., 0.01): "))
-beta = float(input("Enter the momentum coefficient (e.g., 0.9): "))
-epochs = int(input("Enter the epochs: "))
+def get_user_input(prompt, default, cast_func):
+    user_input = input(prompt)
+    if user_input.strip() == "":
+        print(f"Using default value: {default}")
+        return default
+    try:
+        return cast_func(user_input)
+    except Exception as e:
+        print(f"Invalid input. Using default value: {default}")
+        return default
+
+hidden_layer_sizes = get_user_input(
+    "Enter hidden layer sizes separated by commas (e.g., 200,100,50): ", 
+    [200, 100, 50], 
+    lambda x: list(map(int, x.split(',')))
+)
+alpha = get_user_input("Enter the learning rate (e.g., 0.01): ", 0.01, float)
+beta = get_user_input("Enter the momentum coefficient (e.g., 0.9): ", 0.9, float)
+epochs = get_user_input("Enter the epochs: ", 100, int)
 
 # Build the network dynamically based on user specifications
 layer_sizes = [input_size] + hidden_layer_sizes + [output_size]
