@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from Layers import Layer
-from Layers import train_test_split, ReLU, ReLU_deriv, softmax, mse_loss, mse_gradient
+from Layers import train_test_split, mse_loss, mse_gradient
 from Layers import forward_prop, train_with_momentum, compute_accuracy
 
 x_data = np.loadtxt('HW3_datafiles/MNISTnumImages5000_balanced.txt')  
