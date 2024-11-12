@@ -53,7 +53,7 @@ print(f"Test accuracy: {test_accuracy:.2f}%")
 def display_prediction(network, x_test, y_test, num_images=5):
     indices = np.random.choice(x_test.shape[1], num_images, replace=False)
     for idx in indices:
-        image = x_test[:, idx].reshape(28, 28)
+        image = x_test[:, idx].reshape(28, 28).T
         label = y_test[idx]
         prediction = np.argmax(forward_prop(x_test[:, idx].reshape(-1, 1), network)[-1], axis=0)[0]
         
