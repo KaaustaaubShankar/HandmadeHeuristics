@@ -1,4 +1,5 @@
 import numpy as np
+import matplotlib.pyplot as plt
 def train_test_split(x_data, y_data, split_percentage=0.8, shuffle_train=True):
     x_train, x_test, y_train, y_test = [], [], [], []
     unique_digits = np.unique(y_data)
@@ -115,20 +116,105 @@ def compute_accuracy(predictions, Y):
     predicted_classes = np.argmax(predictions, axis=0)
     return np.mean(predicted_classes == Y) * 100
 
-def train_with_momentum(network, X, Y, alpha, epochs, loss_function, loss_gradient, beta):
+def train_with_momentum(network, X, Y, alpha, epochs, loss_function, loss_gradient, beta, batch_size=128, verbose=False, X_test=None, Y_test=None):
     m = X.shape[1]
-
-    # Initialize velocities for each layer in the network
     velocities = [{'W': np.zeros_like(layer.W), 'b': np.zeros_like(layer.b)} for layer in network]
-
+    trainErrorFractions, testErrorFractions = [], []
     for epoch in range(epochs):
-        activations = forward_prop(X, network)
-        gradients = backward_prop(Y, activations, network, loss_gradient)
+        # Generate random indices for the current batch
+        batch_indices = np.random.choice(m, batch_size, replace=False)
+        X_batch = X[:, batch_indices]
+        Y_batch = Y[batch_indices]
+        
+        activations = forward_prop(X_batch, network)
+        gradients = backward_prop(Y_batch, activations, network, loss_gradient)
         update_params_with_momentum(network, gradients, velocities, alpha, beta)
 
-        if epoch % 100 == 0:
-            loss = loss_function(activations[-1], one_hot(Y, activations[-1].shape[0]))
-            accuracy = compute_accuracy(activations[-1], Y)
-            print(f"Epoch {epoch}: Loss = {loss:.4f}, Accuracy = {accuracy:.2f}%")
+        if verbose and epoch % 10 == 0:
+            # Calculate metrics for training set
+            train_activations = forward_prop(X, network)
+            train_loss = loss_function(train_activations[-1], one_hot(Y, train_activations[-1].shape[0]))
+            train_error_fraction = 1 - compute_accuracy(train_activations[-1], Y) / 100
+            trainErrorFractions.append(train_error_fraction)
+            # Calculate metrics for test set if provided
+            test_metrics = ""
+            if X_test is not None and Y_test is not None:
+                test_activations = forward_prop(X_test, network)
+                test_loss = loss_function(test_activations[-1], one_hot(Y_test, test_activations[-1].shape[0]))
+                test_error_fraction = 1- compute_accuracy(test_activations[-1], Y_test) / 100
+                testErrorFractions.append(test_error_fraction)
 
-# endregion
+    return trainErrorFractions, testErrorFractions
+
+
+
+def create_confusion_matrix(predictions, true_labels):
+    """
+    Creates a 10x10 confusion matrix where entry (i,j) represents
+    the number of samples with true label i that were classified as j
+    """
+    predicted_classes = np.argmax(predictions, axis=0)
+    true_labels = true_labels.astype(int)  # Convert labels to integers
+    n_classes = 10
+    confusion_matrix = np.zeros((n_classes, n_classes), dtype=int)
+    
+    for true_label, pred_label in zip(true_labels, predicted_classes):
+        confusion_matrix[true_label][pred_label] += 1
+        
+    return confusion_matrix
+
+def plot_confusion_matrix(train_confusion_matrix, test_confusion_matrix):
+    """
+    Plots training and test confusion matrices side by side using matplotlib
+    """
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(20, 8))
+    
+    # Plot training confusion matrix
+    im1 = ax1.imshow(train_confusion_matrix, cmap='YlOrRd')
+    plt.colorbar(im1, ax=ax1)
+    
+    # Plot test confusion matrix
+    im2 = ax2.imshow(test_confusion_matrix, cmap='YlOrRd')
+    plt.colorbar(im2, ax=ax2)
+    
+    # Add labels and titles
+    for ax, matrix, title in [(ax1, train_confusion_matrix, 'Training Set'),
+                             (ax2, test_confusion_matrix, 'Test Set')]:
+        ax.set_xticks(np.arange(10))
+        ax.set_yticks(np.arange(10))
+        ax.set_xlabel('Predicted Label')
+        ax.set_ylabel('True Label')
+        ax.set_title(f'Confusion Matrix for {title}')
+        
+        # Add text annotations
+        for i in range(10):
+            for j in range(10):
+                text = ax.text(j, i, matrix[i, j],
+                             ha="center", va="center",
+                             color="black" if matrix[i, j] < matrix.max()/2 else "white")
+    
+    plt.tight_layout()
+    plt.show()
+    return fig
+
+def plot_error_fractions(train_errors, test_errors, save_interval=10):
+    """
+    Plots the training and test error fractions over epochs
+    
+    Args:
+        train_errors: List of training error fractions
+        test_errors: List of test error fractions
+        save_interval: Number of epochs between saved points (default=10)
+    """
+    epochs = np.arange(0, len(train_errors) * save_interval, save_interval)
+    
+    plt.figure(figsize=(10, 6))
+    plt.plot(epochs, train_errors, 'b-', label='Training Error')
+    plt.plot(epochs, test_errors, 'r-', label='Test Error')
+    
+    plt.xlabel('Epoch')
+    plt.ylabel('Error Fraction')
+    plt.title('Error Fractions Over Training Period')
+    plt.legend()
+    plt.grid(True)
+    plt.show()
