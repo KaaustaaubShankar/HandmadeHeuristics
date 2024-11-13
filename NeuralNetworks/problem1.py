@@ -29,7 +29,7 @@ def get_user_input(prompt, default, cast_func):
 
 hidden_layer_sizes = get_user_input(
     "Enter hidden layer sizes separated by commas (e.g., 200,100,50): ", 
-    [200, 100, 50], 
+    [200], 
     lambda x: list(map(int, x.split(',')))
 )
 alpha = get_user_input("Enter the learning rate (e.g., 0.01): ", 0.01, float)
