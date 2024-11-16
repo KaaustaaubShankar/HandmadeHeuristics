@@ -37,6 +37,13 @@ def softmax(Z):
     exp_Z = np.exp(Z - np.max(Z, axis=0, keepdims=True))  # Stability improvement
     return exp_Z / np.sum(exp_Z, axis=0, keepdims=True)
 
+def sigmoid(Z):
+    return 1 / (1 + np.exp(-Z))
+
+def sigmoid_deriv(Z):
+    s = sigmoid(Z)
+    return s * (1 - s)
+
 # Encapsulated Mean Squared Error loss and its gradient
 def mse_loss(predictions, targets):
     return np.mean((predictions - targets) ** 2)
@@ -60,11 +67,13 @@ def cross_entropy_gradient(predictions, targets):
 #endregion
 class Layer:
     def __init__(self, input_size, output_size, activation='relu'):
-        self.W = np.random.rand(output_size, input_size) - 0.5
-        self.b = np.random.rand(output_size, 1) - 0.5
+        print(activation)
+        self.W = np.random.randn(output_size, input_size) * np.sqrt(2.0/input_size)
+        self.b = np.zeros((output_size, 1))
         self.activationFunctions = {
                 'relu': (ReLU, ReLU_deriv),
-                'softmax': (softmax, None)
+                'softmax': (softmax, None),
+                'sigmoid': (sigmoid, sigmoid_deriv)
             }
         self.activation, self.activation_deriv = self.activationFunctions[activation]
     
@@ -86,9 +95,13 @@ def forward_prop(X, network):
         activations.append(X)
     return activations
 
-def backward_prop(Y, activations, network, loss_gradient):
-    one_hot_Y = one_hot(Y, activations[-1].shape[0])
-    dA = loss_gradient(activations[-1], one_hot_Y)
+def backward_prop(Y, activations, network, loss_gradient, isClassification):
+    if isClassification:
+        one_hot_Y = one_hot(Y, activations[-1].shape[0])
+        dA = loss_gradient(activations[-1], one_hot_Y)
+    else:
+        # For reconstruction error, Y is already in the correct format
+        dA = loss_gradient(activations[-1], Y)
 
     gradients = []
     for i in reversed(range(len(network))):
@@ -116,7 +129,7 @@ def compute_accuracy(predictions, Y):
     predicted_classes = np.argmax(predictions, axis=0)
     return np.mean(predicted_classes == Y) * 100
 
-def train_with_momentum(network, X, Y, alpha, epochs, loss_function, loss_gradient, beta, batch_size=128, verbose=False, X_test=None, Y_test=None):
+def train_with_momentum(network, X, Y, alpha, epochs, loss_function, loss_gradient, beta, batch_size=128, verbose=False, X_test=None, Y_test=None, isClassification=True):
     m = X.shape[1]
     velocities = [{'W': np.zeros_like(layer.W), 'b': np.zeros_like(layer.b)} for layer in network]
     trainErrorFractions, testErrorFractions = [], []
@@ -124,24 +137,35 @@ def train_with_momentum(network, X, Y, alpha, epochs, loss_function, loss_gradie
         # Generate random indices for the current batch
         batch_indices = np.random.choice(m, batch_size, replace=False)
         X_batch = X[:, batch_indices]
-        Y_batch = Y[batch_indices]
+        if isClassification:
+            Y_batch = Y[batch_indices]
+        else:
+            Y_batch = Y[:, batch_indices]
         
         activations = forward_prop(X_batch, network)
-        gradients = backward_prop(Y_batch, activations, network, loss_gradient)
+        gradients = backward_prop(Y_batch, activations, network, loss_gradient, isClassification)
         update_params_with_momentum(network, gradients, velocities, alpha, beta)
-
+        print(f"Epoch {epoch} completed")
         if verbose and epoch % 10 == 0:
             # Calculate metrics for training set
             train_activations = forward_prop(X, network)
-            train_loss = loss_function(train_activations[-1], one_hot(Y, train_activations[-1].shape[0]))
-            train_error_fraction = 1 - compute_accuracy(train_activations[-1], Y) / 100
+            if isClassification:
+                train_loss = loss_function(train_activations[-1], one_hot(Y, train_activations[-1].shape[0]))
+                train_error_fraction = 1 - compute_accuracy(train_activations[-1], Y) / 100
+            else:
+                train_loss = loss_function(train_activations[-1], Y)
+                train_error_fraction = train_loss
             trainErrorFractions.append(train_error_fraction)
+
             # Calculate metrics for test set if provided
-            test_metrics = ""
             if X_test is not None and Y_test is not None:
                 test_activations = forward_prop(X_test, network)
-                test_loss = loss_function(test_activations[-1], one_hot(Y_test, test_activations[-1].shape[0]))
-                test_error_fraction = 1- compute_accuracy(test_activations[-1], Y_test) / 100
+                if isClassification:
+                    test_loss = loss_function(test_activations[-1], one_hot(Y_test, test_activations[-1].shape[0]))
+                    test_error_fraction = 1 - compute_accuracy(test_activations[-1], Y_test) / 100
+                else:
+                    test_loss = loss_function(test_activations[-1], Y_test)
+                    test_error_fraction = test_loss
                 testErrorFractions.append(test_error_fraction)
 
     return trainErrorFractions, testErrorFractions
