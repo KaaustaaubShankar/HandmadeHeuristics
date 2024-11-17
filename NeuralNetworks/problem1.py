@@ -34,7 +34,7 @@ hidden_layer_sizes = get_user_input(
 )
 alpha = get_user_input("Enter the learning rate (e.g., 0.01): ", 0.01, float)
 beta = get_user_input("Enter the momentum coefficient (e.g., 0.9): ", 0.9, float)
-epochs = get_user_input("Enter the epochs: ", 400, int)
+epochs = get_user_input("Enter the epochs: ", 4000, int)
 batch_size = get_user_input("Enter the batch size: ", 128, int)
 
 # Build the network dynamically based on user specifications
@@ -62,7 +62,7 @@ initial_errors = {
 }
 
 # Train the network using mse loss and momentum
-trainErrorFractions, testErrorFractions = train_with_momentum(network, x_train, y_train, alpha, epochs, mse_loss, mse_gradient, beta, batch_size, verbose=True, X_test=x_test, Y_test=y_test)
+trainErrorFractions, testErrorFractions,epochs_trained = train_with_momentum(network, x_train, y_train, alpha, epochs, mse_loss, mse_gradient, beta, batch_size, verbose=True, X_test=x_test, Y_test=y_test, target_error=0.1)
 
 
 
@@ -129,7 +129,6 @@ print("\nNetwork checkpoint saved successfully!")
 print(f"Final test error rate: {test_error:.4f}")
 print(f"Number of test samples: {len(individual_test_errors)}")
 print(f"Number of misclassified samples: {sum(individual_test_errors)}")
-
-
-
 '''
+
+
