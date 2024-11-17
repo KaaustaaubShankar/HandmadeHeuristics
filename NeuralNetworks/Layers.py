@@ -156,6 +156,7 @@ def train_with_momentum(network, X, Y, alpha, epochs, loss_function, loss_gradie
                 train_loss = loss_function(train_activations[-1], Y)
                 train_error_fraction = train_loss
             trainErrorFractions.append(train_error_fraction)
+            print(f"Train Loss: {train_loss}")
 
             # Calculate metrics for test set if provided
             if X_test is not None and Y_test is not None:
@@ -223,22 +224,69 @@ def plot_confusion_matrix(train_confusion_matrix, test_confusion_matrix):
 
 def plot_error_fractions(train_errors, test_errors, save_interval=10):
     """
-    Plots the training and test error fractions over epochs
-    
-    Args:
-        train_errors: List of training error fractions
-        test_errors: List of test error fractions
-        save_interval: Number of epochs between saved points (default=10)
+    Plots the training and test error fractions over epochs with improved aesthetics
     """
     epochs = np.arange(0, len(train_errors) * save_interval, save_interval)
     
-    plt.figure(figsize=(10, 6))
-    plt.plot(epochs, train_errors, 'b-', label='Training Error')
-    plt.plot(epochs, test_errors, 'r-', label='Test Error')
+    # Create figure with specific size and DPI
+    plt.figure(figsize=(12, 8), dpi=100)
     
-    plt.xlabel('Epoch')
-    plt.ylabel('Error Fraction')
-    plt.title('Error Fractions Over Training Period')
-    plt.legend()
-    plt.grid(True)
+    # Plot lines with increased line width
+    plt.plot(epochs, train_errors, 'b-', label='Training Error', linewidth=2, alpha=0.8)
+    plt.plot(epochs, test_errors, 'r-', label='Test Error', linewidth=2, alpha=0.8)
+    
+    # Create boxes for start and end values
+    box_style = dict(boxstyle='round,pad=0.5', fc='white', ec='gray', alpha=0.8)
+    
+    # Add annotations with boxes
+    plt.annotate(f'Start: {train_errors[0]:.3f}', 
+                xy=(epochs[0], train_errors[0]),
+                xytext=(20, 20),
+                textcoords='offset points',
+                bbox=box_style,
+                color='blue',
+                fontsize=9)
+    
+    plt.annotate(f'End: {train_errors[-1]:.3f}',
+                xy=(epochs[-1], train_errors[-1]),
+                xytext=(-20, 20),
+                textcoords='offset points',
+                bbox=box_style,
+                color='blue',
+                fontsize=9,
+                ha='right')
+    
+    plt.annotate(f'Start: {test_errors[0]:.3f}',
+                xy=(epochs[0], test_errors[0]),
+                xytext=(20, -30),
+                textcoords='offset points',
+                bbox=box_style,
+                color='red',
+                fontsize=9)
+    
+    plt.annotate(f'End: {test_errors[-1]:.3f}',
+                xy=(epochs[-1], test_errors[-1]),
+                xytext=(-20, -30),
+                textcoords='offset points',
+                bbox=box_style,
+                color='red',
+                fontsize=9,
+                ha='right')
+    
+    # Customize grid
+    plt.grid(True, linestyle='--', alpha=0.7)
+    
+    # Customize labels and title
+    plt.xlabel('Epoch', fontsize=12)
+    plt.ylabel('Error Fraction', fontsize=12)
+    plt.title('Training and Test Error Over Time', fontsize=14, pad=20)
+    
+    # Add legend with final values
+    plt.legend([
+        f'Training Error (Final: {train_errors[-1]:.3f})',
+        f'Test Error (Final: {test_errors[-1]:.3f})'
+    ], loc='upper right', fontsize=10)
+    
+    # Adjust layout
+    plt.tight_layout()
     plt.show()
