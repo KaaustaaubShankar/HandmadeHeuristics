@@ -40,7 +40,7 @@ batch_size = get_user_input("Enter the batch size: ", 128, int)
 # Build the network dynamically based on user specifications
 layer_sizes = [input_size] + hidden_layer_sizes + [output_size]
 network = [
-    Layer(layer_sizes[i], layer_sizes[i+1], activation='relu' if i < len(hidden_layer_sizes) else 'sigmoid')
+    Layer(layer_sizes[i], layer_sizes[i+1], activation='relu' if i < len(hidden_layer_sizes) else 'softmax')
     for i in range(len(layer_sizes) - 1)
 ]
 
@@ -99,6 +99,7 @@ plot_confusion_matrix(train_confusion_matrix, test_confusion_matrix)
 
 
 
+'''
 
 # Save final network weights and parameters
 final_network_data = {
@@ -131,4 +132,4 @@ print(f"Number of misclassified samples: {sum(individual_test_errors)}")
 
 
 
-
+'''
