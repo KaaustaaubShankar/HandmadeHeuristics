@@ -34,13 +34,13 @@ hidden_layer_sizes = get_user_input(
 )
 alpha = get_user_input("Enter the learning rate (e.g., 0.01): ", 0.01, float)
 beta = get_user_input("Enter the momentum coefficient (e.g., 0.9): ", 0.9, float)
-epochs = get_user_input("Enter the epochs: ", 100, int)
+epochs = get_user_input("Enter the epochs: ", 400, int)
 batch_size = get_user_input("Enter the batch size: ", 128, int)
 
 # Build the network dynamically based on user specifications
 layer_sizes = [input_size] + hidden_layer_sizes + [output_size]
 network = [
-    Layer(layer_sizes[i], layer_sizes[i+1], activation='relu' if i < len(hidden_layer_sizes) else 'softmax')
+    Layer(layer_sizes[i], layer_sizes[i+1], activation='relu' if i < len(hidden_layer_sizes) else 'sigmoid')
     for i in range(len(layer_sizes) - 1)
 ]
 
@@ -97,6 +97,37 @@ test_confusion_matrix = create_confusion_matrix(test_activations[-1], y_test)
 plot_confusion_matrix(train_confusion_matrix, test_confusion_matrix)
 
 
+
+
+
+# Save final network weights and parameters
+final_network_data = {
+    'network_weights': [{'W': layer.W, 'b': layer.b} for layer in network],
+    'hyperparameters': {
+        'learning_rate': alpha,
+        'momentum': beta
+    }
+}
+
+# Calculate and save error for each test point
+test_predictions = forward_prop(x_test, network)[-1]
+individual_test_errors = []
+for i in range(x_test.shape[1]):
+    pred = test_predictions[:, i]
+    true_label = y_test[i]
+    pred_label = np.argmax(pred)
+    error = 1 if pred_label != true_label else 0
+    individual_test_errors.append(error)
+
+final_network_data['test_errors'] = individual_test_errors
+
+# Save all data to a numpy file
+np.save('network_checkpoint.npy', final_network_data)
+
+print("\nNetwork checkpoint saved successfully!")
+print(f"Final test error rate: {test_error:.4f}")
+print(f"Number of test samples: {len(individual_test_errors)}")
+print(f"Number of misclassified samples: {sum(individual_test_errors)}")
 
 
 
