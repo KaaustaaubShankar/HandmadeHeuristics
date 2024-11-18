@@ -38,7 +38,7 @@ def calculate_digit_metrics(network, X, Y, digit):
 
 # Training parameters
 epochs = 4000
-alpha = 0.2
+alpha = 0.001
 beta = 0.9
 batch_size = 128
 

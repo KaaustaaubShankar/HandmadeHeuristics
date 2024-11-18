@@ -62,7 +62,7 @@ initial_errors = {
 }
 
 # train time
-trainErrorFractions, testErrorFractions,epochs_trained = train_with_momentum(network, x_train, y_train, alpha, epochs, mse_loss, mse_gradient, beta, batch_size, verbose=True, X_test=x_test, Y_test=y_test, target_error=0.1)
+trainErrorFractions, testErrorFractions,epochs_trained = train_with_momentum(network, x_train, y_train, alpha, epochs, mse_loss, mse_gradient, beta, batch_size, verbose=True, X_test=x_test, Y_test=y_test, target_error=0.01)
 
 
 

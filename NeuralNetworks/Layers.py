@@ -86,6 +86,7 @@ def forward_prop(X, network):
 
 def backward_prop(Y, activations, network, loss_gradient, isClassification):
     if isClassification:
+        activations[-1] = np.where(activations[-1] > 0.75, 1, np.where(activations[-1] < 0.25, 0, activations[-1]))
         one_hot_Y = one_hot(Y, activations[-1].shape[0])
         dA = loss_gradient(activations[-1], one_hot_Y)
     else:
@@ -126,19 +127,14 @@ def train_with_momentum(network, X, Y, alpha, epochs, loss_function, loss_gradie
     trainErrorFractions, testErrorFractions = [], []
     
     for epoch in range(epochs):
-        batch_indices = np.random.choice(m, batch_size, replace=False)
-        X_batch = X[:, batch_indices]
-        if isClassification:
-            Y_batch = Y[batch_indices]
-        else:
-            Y_batch = Y[:, batch_indices]
+        # Shuffle data for each epoch
+        permutation = np.random.permutation(m)
+        X_shuffled = X[:, permutation]
+        Y_shuffled = Y[permutation] if isClassification else Y[:, permutation]
         
-        # Forward and backward propagation
-        activations = forward_prop(X_batch, network)
-        gradients = backward_prop(Y_batch, activations, network, loss_gradient, isClassification)
-        update_params_with_momentum(network, gradients, velocities, alpha, beta)
 
-        #metrics every 10 epochs
+
+        # Metrics every 10 epochs
         if verbose and epoch % 10 == 0 or target_error is not None:
             # Calculate training metrics
             train_activations = forward_prop(X, network)
@@ -174,8 +170,18 @@ def train_with_momentum(network, X, Y, alpha, epochs, loss_function, loss_gradie
             if target_error is not None and train_error_fraction <= target_error:
                 print(f"Target error reached: {train_error_fraction} <= {target_error}")
                 break
+                # Mini-batch training
+        for i in range(0, m, batch_size):
+            batch_end = min(i + batch_size, m)
+            X_batch = X_shuffled[:, i:batch_end]
+            Y_batch = Y_shuffled[i:batch_end] if isClassification else Y_shuffled[:, i:batch_end]
+            
+            # Forward and backward propagation
+            activations = forward_prop(X_batch, network)
+            gradients = backward_prop(Y_batch, activations, network, loss_gradient, isClassification)
+            update_params_with_momentum(network, gradients, velocities, alpha, beta)
 
-    return trainErrorFractions, testErrorFractions,epoch
+    return trainErrorFractions, testErrorFractions, epoch
 
 
 def create_confusion_matrix(predictions, true_labels):
