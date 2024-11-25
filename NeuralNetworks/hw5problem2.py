@@ -1,7 +1,8 @@
 # Imports
 import numpy as np
 import matplotlib.pyplot as plt
-from Layers import Layer, train_test_split, mse_loss, mse_gradient
+from Layers import Layer, mse_loss, mse_gradient
+from yuh import train_test_split
 from Layers import forward_prop, train_with_momentum
 import math
 
@@ -42,6 +43,7 @@ alpha = 0.001
 beta = 0.9
 batch_size = 128
 
+print(len(x_train))
 # Train network
 train_errors, test_errors, epochs_trained = train_with_momentum(
     network, x_train, x_train,
@@ -52,6 +54,8 @@ train_errors, test_errors, epochs_trained = train_with_momentum(
     target_error=0.01
 )
 
+x_train, x_test, y_train, y_test = train_test_split(x_data, y_data, split_percentage=0.8, shuffle_train=True,unique_digits = np.array([0,1,2,3,4,5,6,7,8,9]))
+
 # Print metrics for each digit
 print("\nTest Set Metrics per Digit:")
 print("Digit\tMRE\t\tStd Dev")
@@ -61,28 +65,35 @@ for digit in range(10):
     print(f"{digit}\t{mre:.6f}\t{std:.6f}")
 
 # Plot original vs reconstructed images
-def plot_reconstructions(network, X, num_images=8):
-    indices = np.random.choice(X.shape[1], num_images, replace=False)
+def plot_reconstructions(network, X, Y, num_images=5):
+    plt.figure(figsize=(15, 20))
     
-    plt.figure(figsize=(15, 3))
-    for i, idx in enumerate(indices):
-        plt.subplot(2, num_images, i + 1)
-        plt.imshow(X[:, idx].reshape(28, 28).T, cmap='gray')
-        plt.axis('off')
-        if i == 0:
-            plt.title('Original')
+    for digit_idx, digit in enumerate(range(5,10)):
+        # Get indices for current digit
+        digit_indices = np.where(Y == digit)[0]
+        selected_indices = np.random.choice(digit_indices, num_images, replace=False)
         
-        plt.subplot(2, num_images, i + 1 + num_images)
-        reconstruction = forward_prop(X[:, idx].reshape(-1, 1), network)[-1]
-        plt.imshow(reconstruction.reshape(28, 28).T, cmap='gray')
-        plt.axis('off')
-        if i == 0:
-            plt.title('Reconstructed')
+        # Plot original images
+        for i, idx in enumerate(selected_indices):
+            plt.subplot(10, 5, digit_idx*10 + i + 1)
+            plt.imshow(X[:, idx].reshape(28, 28).T, cmap='gray')
+            plt.axis('off')
+            if i == 0:
+                plt.title(f'Original Digit {digit}')
+        
+        # Plot reconstructed images
+        for i, idx in enumerate(selected_indices):
+            plt.subplot(10, 5, digit_idx*10 + i + 6)
+            reconstruction = forward_prop(X[:, idx].reshape(-1, 1), network)[-1]
+            plt.imshow(reconstruction.reshape(28, 28).T, cmap='gray')
+            plt.axis('off')
+            if i == 0:
+                plt.title(f'Reconstructed Digit {digit}')
     
     plt.tight_layout()
     plt.show()
 
-plot_reconstructions(network, x_test)
+plot_reconstructions(network, x_test,y_test)
 
 # Plot final errors
 plt.figure(figsize=(8, 6))
@@ -151,51 +162,5 @@ plt.legend([
 plt.tight_layout()
 plt.show()
 
-# Compare hidden layer weights between networks
-def plot_hidden_weights_comparison(network1, network2, num_neurons=20):
-    weights1 = network1[0].W
-    weights2 = network2[0].W
-    
-    selected_indices = np.random.choice(weights1.shape[0], num_neurons, replace=False)
-    
-    plt.figure(figsize=(15, 12))
-    
-    for idx, i in enumerate(selected_indices):
-        plt.subplot(8, 5, idx + 1)
-        weight_img = weights1[i].reshape(28, 28).T
-        plt.imshow(weight_img, cmap='gray')
-        plt.axis('off')
-        if idx == 0:
-            plt.title('Problem 1 Features', pad=20)
-    
-    for idx, i in enumerate(selected_indices):
-        plt.subplot(8, 5, idx + 20 + 1)
-        weight_img = weights2[i].reshape(28, 28)
-        plt.imshow(weight_img, cmap='gray')
-        plt.axis('off')
-        if idx == 0:
-            plt.title('Problem 2 Features (Autoencoder)', pad=20)
-    
-    plt.tight_layout()
-    plt.show()
-
-# Save network weights and biases
-network_data = {
-    'network_weights': [
-        {'W': layer.W, 'b': layer.b} 
-        for layer in network
-    ]
-}
-np.save('autoencoder.npy', network_data)
 
 
-# Load saved network
-network_data = np.load('network_checkpoint.npy', allow_pickle=True).item()
-network2 = []
-for layer_data in network_data['network_weights']:
-    layer = Layer(layer_data['W'].shape[1], layer_data['W'].shape[0])
-    layer.W = layer_data['W']
-    layer.b = layer_data['b']
-    network2.append(layer)
-
-plot_hidden_weights_comparison(network,network2)
