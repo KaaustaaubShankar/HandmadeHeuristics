@@ -117,7 +117,7 @@ final_network_data = {
 }
 
 # Calculate and save error for each test point
-test_predictions = forward_prop(x_test, network)[-1]
+test_predictions = test_activations[-1]
 individual_test_errors = []
 for i in range(x_test.shape[1]):
     pred = test_predictions[:, i]
@@ -129,7 +129,6 @@ for i in range(x_test.shape[1]):
 final_network_data['test_errors'] = individual_test_errors
 
 # Save all data to a numpy file
-np.save('network_checkpoint.npy', final_network_data)
 
 print("\nNetwork checkpoint saved successfully!")
 print(f"Final test error rate: {test_error:.4f}")
@@ -139,12 +138,11 @@ print(f"Number of misclassified samples: {sum(individual_test_errors)}")
 
 
 # Calculate errors for each digit in training and test sets
-def calculate_errors_by_digit(X, Y, network):
+def calculate_errors_by_digit(predictions, Y):
     digit_errors = {i: [] for i in range(10)}
-    predictions = forward_prop(X, network)[-1]
     pred_labels = np.argmax(predictions, axis=0)
     
-    for i in range(X.shape[1]):
+    for i in range(len(Y)):
         true_label = Y[i]
         error = 1 if pred_labels[i] != true_label else 0
         digit_errors[true_label].append(error)
@@ -154,8 +152,8 @@ def calculate_errors_by_digit(X, Y, network):
     return mean_errors
 
 # Calculate errors for training and test sets
-train_errors_by_digit = calculate_errors_by_digit(x_train, y_train, network)
-test_errors_by_digit = calculate_errors_by_digit(x_test, y_test, network)
+train_errors_by_digit = calculate_errors_by_digit(train_activations[-1], y_train)
+test_errors_by_digit = calculate_errors_by_digit(test_activations[-1], y_test)
 
 # Plot overall error rates
 plt.figure(figsize=(10, 5))
